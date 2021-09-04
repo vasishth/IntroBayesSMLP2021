@@ -23,6 +23,7 @@ link-citations: yes
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
+library(tidyverse)
 ```
 
 # Linear modeling 
@@ -297,7 +298,7 @@ Next, we write the Stan model, adding a likelihood in the model block:
 
 #  Fake-data simulation and modeling
 
-\small
+\tiny
 
 ```{r echo=TRUE}
 m1<-"data {
@@ -489,7 +490,7 @@ We now compute the posterior probability  $Prob(\mu>170)$:
 
 ```{r echo=TRUE}
 mu_post<-posterior_samples(m1brms,
-                           pars=c("b_Intercept"))$b_Intercept
+                           variable=c("b_Intercept"))$b_Int
 mean(mu_post>170)
 ```
 
@@ -500,8 +501,8 @@ mean(mu_post>170)
 The 95% credible interval can be extracted for $\mu$ as follows:
 
 ```{r echo=TRUE}
-posterior_interval(m1brms,pars=c("b_Intercept"))
-posterior_summary(m1brms,pars=c("b_Intercept"))
+posterior_interval(m1brms,variable =c("b_Intercept"))
+posterior_summary(m1brms,variable=c("b_Intercept"))
 ```
 
 
@@ -548,6 +549,7 @@ m2<-brm(rt~1,df_spacebar,prior = priors,
 
 # Influence of priors and sensitivity analysis
 
+\tiny
 ```{r echo=TRUE}
 summary(m2)
 ```
@@ -607,11 +609,9 @@ Our model changes, because we have a new parameter.
 
 \begin{equation}
 rt_n \sim \mathit{LogNormal}(\alpha + c\_trial_n \cdot \beta,\sigma)
-(\#eq:rtloglik)
 \end{equation}
 
 where $n =1 \ldots N$.
-
 
 We are going to use the following priors:
 
@@ -674,6 +674,10 @@ stanplot(m2,type="hist")
 
 We'll need to examine what happens with $\beta$. The summary gives us the relevant information:
 
+# Example 2: Investigating adaptation effects \label{sec:moreinter}
+## Summarizing the posterior and inference
+
+
 ```{r echo=TRUE}
 m2_post_samp_b <- posterior_samples(m2, "^b")
 str(m2_post_samp_b)
@@ -692,7 +696,7 @@ We'll need to examine what happens with $\beta$. The summary gives us the releva
 
 ```{r echo=TRUE}
 m2_post_samp_b2 <- posterior_summary(m2, "^b")
-m2_post_samp_b2
+round(m2_post_samp_b2,2)
 ```
 
 
@@ -787,22 +791,22 @@ m2_logn<-brm(rt~1+ c_trial,df_spacebar,
 
 Next, we turn to the question of what we can report as our results, and what we can conclude from the data.
 
-```{r, echo=FALSE, results="hide"}
-options(scipen=999, digits=6)
+```{r, echo=FALSE, results="hide", warning=FALSE}
+#options(scipen=999, digits=6)
 
-alpha_samples<-posterior_samples(m2_logn,"^b")$b_Intercept
+alpha_samples<-posterior_samples(m2_logn,variable="b_Intercept")$b_Intercept
 
-beta_samples<-posterior_samples(m2_logn,"^b")$b_presses
+beta_samples<-posterior_samples(m2_logn,variable="b_c_trial")$b_c_trial
 
 beta_ms<-exp(alpha_samples+beta_samples)-exp(alpha_samples)
 
-(beta_msmean <- round(mean(beta_ms),3))
-(beta_mslow <- round(quantile(beta_ms,prob=0.025),3))
-(beta_mshigh <- round(quantile(beta_ms,prob=0.975),3))
+(beta_msmean <- mean(beta_ms))
+(beta_mslow <- quantile(beta_ms,prob=0.025))
+(beta_mshigh <- quantile(beta_ms,prob=0.975))
 
-beta_mean <- round(mean(beta_samples),2)
-beta_low <- round(quantile(beta_samples,prob=0.025),2)
-beta_high <- round(quantile(beta_samples,prob=0.975),2)
+beta_mean <- mean(beta_samples)
+beta_low <- quantile(beta_samples,prob=0.025)
+beta_high <- quantile(beta_samples,prob=0.975)
 ```
 
   - We can summarize the posterior and do inference as discussed in Example 1. 
@@ -851,8 +855,7 @@ This is the general workflow that we suggest for a Bayesian model.
 6. Inference/prediction/decisions.
 7. Conduct model comparison if there's an alternative model (to be discussed later).
 
-# General workflow
+Related reading: @SchadEtAlWorkflow.
 
-Related reading: 
+# References
 
-Daniel J. Schad, Michael Betancourt, and Shravan Vasishth. Toward a principled Bayesian workflow in cognitive science. Psychological Methods, 26(1):103--126, 2020.
