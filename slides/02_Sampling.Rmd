@@ -220,9 +220,9 @@ y[i]<-sqrt((2*u*(4*x[i]+10))/3 +((2*x[i]+2)/3)*((2*x[i]+2)/3))-
 
 # Example: A simple bivariate distribution
 
-You can run this code to visualize the simulated posterior distribution. See Figure \ref{fig:posteriorbivariateexample}.
+You can run this code (hidden) to visualize the simulated posterior distribution. See Figure \ref{fig:posteriorbivariateexample}.
 
-```{r fig.height=3,fig.cap="\\label{fig:posteriorbivariateexample}Example of posterior distribution of a bivariate distribution."}
+```{r echo=FALSE, fig.height=3,fig.cap="\\label{fig:posteriorbivariateexample}Example of posterior distribution of a bivariate distribution."}
 library(MASS)
 bivar.kde<-kde2d(x,y)
 persp(bivar.kde,phi=10,theta=90,shade=0,border=NA,
@@ -434,9 +434,7 @@ The Radford Neal algorithm for HMC.
 Source: [Jarad Niemi](https://github.com/jarad/)'s github repository. 
 
 # HMC demonstration 
-
-See lecture notes.
-
+\tiny
 ```{r}
 ## Radford Neal algorithm:
 HMC_neal <- function(U, grad_U, e, L, current_theta) {
@@ -460,9 +458,7 @@ return(theta)
 }
 else {
 return(current_theta)
-}
-}
-
+}}
 HMC <- function(n_reps, log_density, grad_log_density, tuning, initial) {
 theta = rep(0, n_reps)
 theta[1] = initial$theta
