@@ -203,27 +203,47 @@ f(\theta\mid \hbox{data}) \propto [\theta^{46} (1-\theta)^{54}] [\theta^{21-1}(1
 
 # Example 1: Binomial Likelihood, Beta prior, Beta posterior
 
-We can now visualize each of these triplets of priors, likelihoods and posteriors. Note that I use the beta to model the likelihood because this allows me to visualize all three (prior, lik., posterior) in the same plot. The likelihood function is shown in the next slide.
+We can now visualize each of these triplets of priors, likelihoods and posteriors. Note that I normalize the likelihood because this allows me to visualize all three (prior, lik., posterior) in the same plot on the same scale. next slide.
 
 # Example 1: Binomial Likelihood, Beta prior, Beta posterior
 
-```{r,binomlik,fig.height=4,fig.cap="\\label{fig:binomplot}Binomial likelihood function."}
-theta=seq(0,1,by=0.01)
+```{r,binomlik,echo=FALSE,fig.height=4,fig.cap="\\label{fig:binomplot}Binomial likelihood function."}
+library(ggplot2)
+library(tidyverse)
+## Likelihood
+k <- 46
+n <- 100
+## Prior
+a <- 21
+b <- 21
+binom_lh <- function(theta) {
+dbinom(x=k, size =n, prob = theta)
+}
 
-plot(theta,dbinom(x=46,size=100,prob=theta),
-     type="l",main="Likelihood")
+K <- integrate(f = binom_lh, lower = 0, upper = 1)$value
+
+binom_scaled_lh <- function(theta) 1/K * binom_lh(theta)
+  
+p_beta <- ggplot(data = tibble(theta = c(0, 1)), aes(theta)) +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = a, shape2 = b),
+    aes(linetype = "Prior")
+  ) +
+  ylab("density") +
+  stat_function(
+    fun = dbeta,
+    args = list(shape1 = k + a, shape2 = n - k + b), aes(linetype = "Posterior")
+  ) +
+  stat_function(
+    fun = binom_scaled_lh,
+    aes(linetype = "Scaled likelihood")
+  ) +
+  theme_bw() +
+  theme(legend.title = element_blank())
+p_beta
 ```
 
-# Example 1: Binomial Likelihood, Beta prior, Beta posterior
-
-
-We can represent the likelihood in terms of the beta as well:
-
-```{r,binomasbeta,fig.height=4,fig.cap="\\label{fig:betaforbinom}Using the beta distribution to represent a binomial likelihood function."}
-plot(function(x) 
-  dbeta(x,shape1=46,shape2=54),0,1,
-              ylab="",xlab="X")
-```
 
 # Example 1: Binomial Likelihood, Beta prior, Beta posterior
 
@@ -320,8 +340,8 @@ L(\mathbf{x}\mid \theta) =& \prod_{i=1}^n \frac{\exp(-\theta) \theta^{x_i}}{x_i!
 we can compute the posterior as follows:
 
 \begin{equation}
-\hbox{Posterior} = [\frac{\exp(-n\theta) \theta^{\sum_i^{n} x_i}}{\prod_{i=1}^n x_i!}]
-[ \frac{b^a \theta^{a-1}\exp(-b\theta)}{\Gamma(a)} ]
+\hbox{Posterior} = \left[\frac{\exp(-n\theta) \theta^{\sum_i^{n} x_i}}{\prod_{i=1}^n x_i!}\right]
+\left[ \frac{b^a \theta^{a-1}\exp(-b\theta)}{\Gamma(a)} \right]
 \end{equation}
 
 Disregarding the terms $x!,\Gamma(a), b^a$,  which do not involve $\theta$, we have
