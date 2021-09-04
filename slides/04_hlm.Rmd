@@ -1,6 +1,6 @@
 ---
 title: "04 Hierarchical linear modeling"
-author: "Shravan Vasishth and Bruno Nicenboim"
+author: "Shravan Vasishth"
 date: '```r format(Sys.Date(), "%B %d, %Y")```'
 output:
   beamer_presentation:
@@ -47,33 +47,12 @@ We begin with a relatively simple question from the psycholinguistics literature
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Load data and reformat
 
-```{r open_swetsetal,echo=TRUE}
-gg05e1 <- read.table("data/GrodnerGibson2005E1.csv",
-                     sep=",", header=T)
-gge1 <- gg05e1 %>% filter(item != 0)
-
-gge1 <- gge1 %>% 
-  mutate(word_positionnew = ifelse(item != 15 & 
-                                   word_position > 10, 
-                                   word_position-1, 
-                                   word_position)) 
+```{r loaddata,echo=TRUE}
+library(bcogsci)
+data("df_gg05_rc")
 ```
 
 
-# Example 1: Reading time differences in subject vs object relatives in English
-## Load data and reformat
-
-
-```{r}
-#there is a mistake in the coding of word position,
-#all items but 15 have regions 10 and higher coded
-#as words 11 and higher
-
-## get data from relative clause verb:
-gge1crit <- subset(gge1, ( condition == "objgap" & 
-                             word_position == 6 ) |
-            ( condition == "subjgap" & word_position == 4 ))
-```
 
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Experiment design: Latin square and crossed subject and items
@@ -90,9 +69,9 @@ First, the design is the classic repeated measure Latin square set-up. To see wh
 first look at the number of subjects and items, and the number of rows in the data frame:
 
 ```{r}
-length(unique(gge1crit$subject))
-length(unique(gge1crit$item))
-dim(gge1crit)[1]
+length(unique(df_gg05_rc$subj))
+length(unique(df_gg05_rc$item))
+dim(df_gg05_rc)[1]
 ```
 
 There are 42 subjects and 16 items. There are $42\times 16 = 672$ rows in the data frame. 
@@ -103,7 +82,7 @@ There are 42 subjects and 16 items. There are $42\times 16 = 672$ rows in the da
 Notice also that each subject sees exactly eight object gap and eight subject gap sentences:
 
 ```{r}
-head(xtabs(~subject+condition,gge1crit),n=4)
+head(xtabs(~subj+condition,df_gg05_rc),n=4)
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
@@ -185,7 +164,7 @@ We will need this code later for fake data simulation.
 In the data, because of the Latin square design, each subject sees exactly one item in one of the two conditions:
 
 ```{r}
-xtabs(~subject+item,gge1crit)
+xtabs(~subj+item,df_gg05_rc)
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
@@ -202,7 +181,7 @@ y \sim Normal(\alpha + \beta * so, \sigma)
 Here, object gaps are coded +1, subject gaps -1. See @SchadEtAlcontrasts for an explanation of contrast coding.
 
 ```{r}
-gge1crit$so<-ifelse(gge1crit$condition=="objgap",1,-1)
+df_gg05_rc$so<-ifelse(df_gg05_rc$condition=="objgap",1,-1)
 ```
 
 
@@ -212,7 +191,7 @@ gge1crit$so<-ifelse(gge1crit$condition=="objgap",1,-1)
 As figure \ref{fig:ggrtdistrn} shows, a Normal likelihood doesn't seem well motivated, so we will use the log-normal.
 
 ```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:ggrtdistrn}Distribution of reading times in the Grodner and Gibson Experiment 1 data, at the critical region."}
-plot(density(gge1crit$rawRT),main="Grodner and Gibson Expt 1",xlab="RTs (ms)")
+plot(density(df_gg05_rc$RT),main="Grodner and Gibson Expt 1",xlab="RTs (ms)")
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
@@ -228,7 +207,7 @@ y \sim LogNormal(\alpha + \beta * so, \sigma)
 
 
 ```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:subjint}Between subject variability in mean reading times."}
-hist(with(gge1crit,tapply(rawRT,subject,mean)),
+hist(with(df_gg05_rc,tapply(RT,subj,mean)),
      main="Between subject variability",
      xlab="mean RTs",freq=FALSE)
 ```
@@ -237,23 +216,25 @@ hist(with(gge1crit,tapply(rawRT,subject,mean)),
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Between subject variability in mean reading time
 
-In the linear model, we can express the assumption that the grand mean intercept $\alpha$ needs an adjustment by subject, where subjects are indexed from $j=1,\dots,J$:
+In the linear model, we can express the assumption that the grand mean intercept $\alpha$ needs an adjustment by subject. 
+
+\textbf{Here, subj[n]=subject id in n-th row of data}.
 
 \begin{equation}
-y_j \sim LogNormal(\alpha + u_{0j} + \beta * so_j, \sigma)
+y_n \sim LogNormal(\alpha + u_{subj[n],1]} + \beta * so_n, \sigma)
 \end{equation}
 
 where we now have two sources of variance:
 
 - within subject: $\sigma$ 
-- between subject variance in mean reading times:  $u_{0j} \sim Normal(0,\sigma_{u0})$ 
+- between subject variance in mean reading times:  $u_{subj[n],1} \sim Normal(0,\sigma_{u1})$ 
 
 
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Between item variability in mean reading time
 
 ```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:itemint}Between item variability in mean reading times."}
-hist(with(gge1crit,tapply(rawRT,item,mean)),
+hist(with(df_gg05_rc,tapply(RT,item,mean)),
      main="Between item variability",
      xlab="mean RTs",freq=FALSE)
 ```
@@ -262,17 +243,17 @@ hist(with(gge1crit,tapply(rawRT,item,mean)),
 ## Between item variability in mean reading time
 
 
-For items ranging from $k=1,\dots,K$, we can add this assumption to the model:
+For items ranging from $j=1,\dots,16$, we can add this assumption to the model:
 
 \begin{equation}
-y_{kj} \sim LogNormal(\alpha + u_{0j} + w_{0k} + \beta * so_{kj},\sigma)
+y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + \beta * so_{n},\sigma)
 \end{equation}
 
 where there are now three variance components:
 
 - $\sigma$
-- $u_{0j} \sim Normal(0,\sigma_{u0})$
-- between item variability in mean reading time, $w_{0k} \sim Normal(0,\sigma_{w0})$
+- $u_{subj[n],1} \sim Normal(0,\sigma_{subj[n],1})$
+- between item variability in mean reading time, $w_{item[n],1} \sim Normal(0,\sigma_{w1})$
 
 This model is called a *varying intercepts model* with crossed varying intercepts for subjects and for items.
 
@@ -282,14 +263,16 @@ This model is called a *varying intercepts model* with crossed varying intercept
 
 ```{r echo=FALSE,fig.cap="\\label{fig:subjitemslope}Between subject and item variability in object gap vs subject gap reading times."}
 op<-par(mfrow=c(1,2),pty="s")
-meanssubj<-with(gge1crit,
-                tapply(rawRT,IND=list(subject,condition),mean))
+meanssubj<-with(df_gg05_rc,
+                tapply(RT,IND=list(subj,condition),mean))
 diff<-meanssubj[,2]-meanssubj[,1]
 
 hist(diff,
-     main="Between subject variability",xlab="mean objgap cost",freq=FALSE,xlim=c(-800,200),ylim=c(0,0.005))
+     main="Between subject variability",xlab="mean objgap cost",freq=FALSE,xlim=c(-800,200),
+     ylim=c(0,0.005))
 
-meansitem<-with(gge1crit,tapply(rawRT,IND=list(item,condition),mean))
+meansitem<-with(df_gg05_rc,
+                tapply(RT,IND=list(item,condition),mean))
 diff<-meansitem[,2]-meansitem[,1]
 
 hist(diff,
@@ -302,16 +285,16 @@ hist(diff,
 We can incorporate this assumption into the model by adding adjustments to the $\beta$ parameter:
 
 \begin{equation}
-y_{kj} \sim LogNormal(\alpha + u_{0j} + w_{0k} + (\beta + u_{1j} + w_{1k}  )* so_{kj},\sigma) 
+y_{ij} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w__{item[n],1})* so_{n},\sigma) 
 \end{equation}
 
 where 
 
   - $\sigma$ 
-  - $u_{0j} \sim Normal(0,\sigma_{u0})$
-  - $u_{1j} \sim Normal(0,\sigma_{u1})$
-  - $w_{0k} \sim Normal(0,\sigma_{w0})$
-  - $w_{1k} \sim Normal(0,\sigma_{w1})$
+  - $u_{subj[n],1} \sim Normal(0,\sigma_{u1})$
+  - $u_{subj[n],2} \sim Normal(0,\sigma_{u2})$
+  - $w_{item[n],1} \sim Normal(0,\sigma_{w1})$
+  - $w_{item[n],2} \sim Normal(0,\sigma_{w2})$
 
 This is called the *varying intercepts and slopes* model with *no correlation* between the intercepts and slopes.
 
@@ -326,7 +309,7 @@ This is called the *varying intercepts and slopes* model with *no correlation* b
 
 
 \begin{equation}
-y_{kj} \sim LogNormal(\alpha + u_{0j} + w_{0k} + (\beta + u_{1j} + w_{1k}) * so_{kj}, \sigma)
+y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w_{item[n],2}) * so_{n}, \sigma)
 \end{equation}
 
 where we have variance components: $\sigma$ and 
@@ -335,22 +318,22 @@ where we have variance components: $\sigma$ and
 \Sigma _u
 =
 \begin{pmatrix}
-\sigma _{u0}^2  & \rho _{u}\sigma _{u0}\sigma _{u1}\\
-\rho _{u}\sigma _{u0}\sigma _{u1}    & \sigma _{u1}^2\\
+\sigma _{u1}^2  & \rho _{u}\sigma _{u1}\sigma _{u2}\\
+\rho _{u}\sigma _{u1}\sigma _{u2}    & \sigma _{u2}^2\\
 \end{pmatrix}
 \quad 
 \Sigma _w
 =
 \begin{pmatrix}
-\sigma _{w0}^2  & \rho _{w}\sigma _{w0}\sigma _{w1}\\
-\rho _{w}\sigma _{w0}\sigma _{w1}    & \sigma _{w1}^2\\
+\sigma _{w1}^2  & \rho _{w}\sigma _{w1}\sigma _{w2}\\
+\rho _{w}\sigma _{w1}\sigma _{w2}    & \sigma _{w2}^2\\
 \end{pmatrix}
 \end{equation}
 
 \begin{equation}\label{eq:jointpriordist1}
 \begin{pmatrix}
-  u_0 \\ 
-  u_1 \\
+  u_1 \\ 
+  u_2 \\
 \end{pmatrix}
 \sim 
 \mathcal{N} \left(
@@ -362,8 +345,8 @@ where we have variance components: $\sigma$ and
 \right),
 \quad
 \begin{pmatrix}
-  w_0 \\ 
-  w_1 \\
+  w_1 \\ 
+  w_2 \\
 \end{pmatrix}
 \sim 
 \mathcal{N}\left(
@@ -403,7 +386,7 @@ We define some priors first:
 ## The LKJ prior on the correlation matrix
 
   - In this model, we assume that the vector 
-$\mathbf{u}=\langle u_0, u_1 \rangle$
+$\mathbf{u}=\langle u_1, u_2 \rangle$
 comes from a bivariate normal distribution with a variance-covariance matrix $\boldsymbol{\Sigma_u}$.
   - This matrix has the variances of the adjustment to the intercept and to the slope respectively along the diagonal, and the covariance on the off-diagonals. 
 
@@ -416,8 +399,8 @@ deviations $\sigma_X$ and $\sigma_Y$, such that, $Cov(X,Y) = \rho \sigma_X \sigm
 \begin{equation}
 \boldsymbol{\Sigma_u} = 
 {\begin{pmatrix} 
-\sigma_{u_0}^2 & \rho_u \sigma_{u_0} \sigma_{u_1} \\ 
-\rho_u \sigma_{u_0} \sigma_{u_1} & \sigma_{u_1}^2
+\sigma_{u_1}^2 & \rho_u \sigma_{u_1} \sigma_{u_2} \\ 
+\rho_u \sigma_{u_1} \sigma_{u_2} & \sigma_{u_2}^2
 \end{pmatrix}}
 \end{equation}
 
@@ -440,10 +423,10 @@ The covariance matrix can be decomposed into a vector of standard deviations and
 In Stan, we write a matrix that has 0's on the off-diagonals as:
 
 \begin{equation}
-diag\_matrix(\sigma_{u_0},\sigma_{u_1}) = 
+diag\_matrix(\sigma_{u_1},\sigma_{u_2}) = 
 \begin{pmatrix} 
-\sigma_{u_0} & 0 \\ 
-0  & \sigma_{u_1}
+\sigma_{u_1} & 0 \\ 
+0  & \sigma_{u_2}
 \end{pmatrix}
 \end{equation}
 
@@ -451,19 +434,19 @@ This means that we can decompose the covariance matrix into three parts:
 
 \begin{equation}
 \begin{aligned}
-\boldsymbol{\Sigma_u} &= diag\_matrix(\sigma_{u_0},\sigma_{u_1}) \cdot \boldsymbol{\rho_u} \cdot diag\_matrix(\sigma_{u_0},\sigma_{u_1})\\
+\boldsymbol{\Sigma_u} &= diag\_matrix(\sigma_{u_1},\sigma_{u_2}) \cdot \boldsymbol{\rho_u} \cdot diag\_matrix(\sigma_{u_1},\sigma_{u_2})\\
 &=
 {\begin{pmatrix} 
-\sigma_{u_0} & 0 \\ 
-0  & \sigma_{u_1}
+\sigma_{u_1} & 0 \\ 
+0  & \sigma_{u_2}
 \end{pmatrix}}
 {\begin{pmatrix} 
 1 & \rho_u  \\ 
 \rho_u  & 1
 \end{pmatrix}}
 {\begin{pmatrix} 
-\sigma_{u_0} & 0 \\ 
-0  & \sigma_{u_1}
+\sigma_{u_1} & 0 \\ 
+0  & \sigma_{u_2}
 \end{pmatrix}}
 \end{aligned}
 \end{equation}
@@ -567,8 +550,8 @@ priors <- c(set_prior("normal(0, 10)",
 
 
 ```{r results="hide",cache=TRUE,message=FALSE}
-m_gg<-brm(rawRT~so + (1+so|subject) + (1+so|item),
-          gge1crit,family=lognormal(),
+m_gg<-brm(RT~so + (1+so|subj) + (1+so|item),
+          df_gg05_rc,family=lognormal(),
     prior=priors)
 ```
 
@@ -642,14 +625,13 @@ mcmc_areas_ridges(subjslope)
 ## By subject slope adjustments
 
 ```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:ggpostcorr}Posterior distributions of subject varying intercept and slope correlation parameter in the Grodner and Gibson data."}
-stanplot(m_gg,type="hist",pars="cor_subject__Intercept__so")
+stanplot(m_gg,type="hist",pars="cor_subj__Intercept__so")
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Examine mean and individual differences on the raw ms scale 
 
 It is useful to see the effects on the raw ms scale. The log ms scale is difficult to interpret. 
-
 
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Mean difference
@@ -856,7 +838,7 @@ pp_check(m_gg, nsamples = 100)+
 The @grodner data also has question-response accuracies: 1 if the response to a question following the sentence was correct, 0 otherwise. We show only the relevant columns below:
 
 ```{r}
-head(gge1crit[,c(1,2,3,8,11)])
+head(df_gg05_rc[,c(1,2,3,4,6)])
 ```
 
 # Example 2: Question-response accuracies (Logistic regression)
@@ -864,8 +846,8 @@ head(gge1crit[,c(1,2,3,8,11)])
 One could aggregate the accuracy by item, and then just fit a hierarchical linear model:
 
 ```{r}
-meanp<-with(gge1crit,tapply(qcorrect,
-                     IND=list(condition,subject),
+meanp<-with(df_gg05_rc,tapply(qcorrect,
+                     IND=list(condition,subj),
                      mean))
 q_df<-data.frame(subj=rep(c(1:42),2),
            so=rep(c(1,-1),each=42),
@@ -877,6 +859,7 @@ head(q_df)
 # Example 2: Question-response accuracies (Logistic regression)
 
 ```{r}
+library(lme4)
 mqlmer<-lmer(p~so+(1|subj),q_df)
 summary(mqlmer)
 ```
@@ -889,7 +872,7 @@ Think about the generative process; a 0,1 response is best seen as generated by 
 One can therefore model each 0,1 response as being generated from a Bernoulli distribution, which is just a Binomial with a single trial. Thus, what is of interest is the probability of correct responses in subject vs object relatives:
 
 ```{r}
-round(100*with(gge1crit,
+round(100*with(df_gg05_rc,
                tapply(qcorrect,condition,mean)))
 ```
 
@@ -916,7 +899,7 @@ This model is called a *logistic* regression because it uses the logistic or log
 We can fit the above model easily using brms:
 
 ```{r results="hide",cache=TRUE}
-m_gg_q1<-brm(qcorrect~so,gge1crit,
+m_gg_q1<-brm(qcorrect~so,df_gg05_rc,
              family=bernoulli(link="logit"))
 summary(m_gg_q1)
 ```
@@ -926,8 +909,9 @@ summary(m_gg_q1)
 Obviously, because the question-response data are also repeated measures, we must use a hierarchical linear model, with varying intercepts and slopes for subject and item, as in Example 1:
 
 ```{r results="hide",cache=TRUE}
-m_gg_q2<-brm(qcorrect~so+(1+so|subject) + (1+so|item),
-             gge1crit,family=bernoulli(link="logit"))
+m_gg_q2<-brm(qcorrect~so+(1+so|subj) + (1+so|item),
+             df_gg05_rc,
+             family=bernoulli(link="logit"))
 summary(m_gg_q2)
 ```
 
