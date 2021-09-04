@@ -285,7 +285,7 @@ hist(diff,
 We can incorporate this assumption into the model by adding adjustments to the $\beta$ parameter:
 
 \begin{equation}
-y_{ij} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w__{item[n],1})* so_{n},\sigma) 
+y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w__{item[n],1})* so_{n},\sigma) 
 \end{equation}
 
 where 
