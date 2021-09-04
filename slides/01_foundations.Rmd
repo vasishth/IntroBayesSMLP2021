@@ -36,7 +36,7 @@ The way we will conduct data analysis is as follows.
   - Using software, derive *marginal posterior distributions* for parameters given likelihood function and prior density.
   - Simulate parameters to get *samples from posterior distributions* of parameters using some *Markov Chain Monte Carlo (MCMC) sampling algorithm*.
   - Evaluate whether model makes sense, using *model convergence* diagnostics, 
-  fake-data simulation, *prior predictive* and *posterior predictive* checks, and (if you want to claim a discovery) calibrating true and false discovery rates.
+  fake-data simulation, *prior predictive* and *posterior predictive* checks.
   - Summarize *posterior distributions* of parameter samples and carry out your scientific conclusion.
 
 
@@ -147,7 +147,7 @@ plot(function(x) normkernel(x), -3, 3,
 
 # Random variable theory
 
-Adding a normalizing constant makes the above kernel density a pdf.
+Adding a \textbf{normalizing constant} makes the above kernel density a pdf.
 
 ```{r fig.height=5}
 norm<-function(x,mu=0,sigma=1){
@@ -231,7 +231,7 @@ For psychology and linguistics, one application is in eye tracking: modeling num
 
 # The Poisson distribution
 
-Let $\lambda$ be the average number of events in the time interval $[0,1]$. Let the random variable $X$ count the number of events occurring in the interval. Then: 
+Let $\lambda$ be the average number of events in a given time interval $[0,1]$. Let the random variable $X$ count the number of events occurring in the interval. Then: 
 
 \begin{equation}
 	f_{X}(x)=\mathbb{P}(X=x)=\mathrm{e}^{-\lambda}\frac{\lambda^{x}}{x!},\quad x=0,1,2,\ldots
