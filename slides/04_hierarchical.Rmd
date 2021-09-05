@@ -299,13 +299,13 @@ where
 This is called the *varying intercepts and slopes* model with *no correlation* between the intercepts and slopes.
 
 # Example 1: Reading time differences in subject vs object relatives in English
-## The ``maximal'' model \label{maximal}
+## The "maximal" model \label{maximal}
 
   - There is one detail still missing in the model: the adjustments to the intercept and slope are correlated for subjects, and also for items. 
   - In other words, we have a bivariate distribution for the subject and item random effects:
 
 # Example 1: Reading time differences in subject vs object relatives in English
-## The ``maximal'' model 
+## The "maximal" model 
 
 
 \begin{equation}
@@ -371,14 +371,14 @@ The above model is simple to implement in the Bayesian framework.
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Specify and visualize priors
 
-We define some priors first:
+Define some priors first:
 
 \begin{enumerate}
 \item $\alpha \sim Normal(0,10)$
 \item $\beta \sim Normal(0,1)$
 \item Residual standard deviation: $\sigma \sim Normal_{+}(0,1)$
 \item All other standard deviations: $\sigma \sim Normal_{+}(0,1)$
-\item Correlation matrix: $\rho \sim LKJ(2)$. 
+\item Correlation matrix: $\rho \sim LKJcorr(2)$. 
 \end{enumerate}
 
 
@@ -465,7 +465,7 @@ diagonals and values close to zero in the lower and upper triangles).
 
 As always, it is a good idea to visualize these priors. See Figure \ref{fig:priorsgg}.
 
-```{r results="hide",echo=FALSE}
+```{r results="hide",echo=FALSE,message=FALSE,warning=FALSE}
 priors_alpha <- c(0,10)
 priors_beta <- c(0,1)
 priors_sigma_e <- c(0,1)
@@ -531,7 +531,7 @@ plot(density(corrs[[3]],bw=0.15),ylab="density",xlab=expression(rho),xlim=c(-1,1
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Fit the model using brms
 
-```{r}
+```{r message=FALSE,warning=FALSE}
 priors <- c(set_prior("normal(0, 10)", 
                       class = "Intercept"),
                       set_prior("normal(0, 1)", 
@@ -558,7 +558,7 @@ m_gg<-brm(RT~so + (1+so|subj) + (1+so|item),
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Fit the model using brms
 
-```{r echo=FALSE,message=FALSE,fig.height=5}
+```{r message=FALSE,warning=FALSE,echo=FALSE,message=FALSE,fig.height=5}
 stanplot(m_gg,type="hist")
 ```
 
@@ -577,11 +577,11 @@ Look at the posterior distributions of the parameters on the log ms scale (for t
 
 First, extract the posterior samples of the parameters that we will need to compute individual differences.
 
-```{r message=FALSE}
+```{r message=FALSE, warning=FALSE}
 library(bayesplot)
 ```
 
-```{r}
+```{r message=FALSE, warning=FALSE}
 postgg<-posterior_samples(m_gg)
 ## extract variances:
 alpha<-postgg$b_Intercept
@@ -594,7 +594,7 @@ sigma<-posterior_samples(m_gg,"sigma")
 # Example 1: Reading time differences in subject vs object relatives in English
 ## Examine by subject random effects visually
 
-```{r}
+```{r echo=FALSE,message=FALSE,warning=FALSE}
 ## item random effects won't be used below
 item_re<-posterior_samples(m_gg,"^r_item")
 subj_re<-posterior_samples(m_gg,"^r_subj")
@@ -616,7 +616,7 @@ mcmc_areas(subjslope)
 ## By subject slope adjustments
 
 
-```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:ggsubjsloperidges}Variability in subject slope adjustments in the Grodner and Gibson data."}
+```{r echo=FALSE,warning=FALSE,fig.height=3,fig.cap="\\label{fig:ggsubjsloperidges}Variability in subject slope adjustments in the Grodner and Gibson data."}
 mcmc_areas_ridges(subjslope)
 ```
 
@@ -624,7 +624,7 @@ mcmc_areas_ridges(subjslope)
 # Example 1: Reading time differences in subject vs object relatives in English
 ## By subject slope adjustments
 
-```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:ggpostcorr}Posterior distributions of subject varying intercept and slope correlation parameter in the Grodner and Gibson data."}
+```{r echo=FALSE,warning=FALSE,fig.height=3,fig.cap="\\label{fig:ggpostcorr}Posterior distributions of subject varying intercept and slope correlation parameter in the Grodner and Gibson data."}
 stanplot(m_gg,type="hist",pars="cor_subj__Intercept__so")
 ```
 
@@ -688,150 +688,6 @@ for(i in 1:42){
 ## Individual effects of OR processing cost
 
 This illustrates a point that @blastland2014norm make: ``The average is an abstraction. The reality is variation.'' 
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims about the mean effect, calibrate the true and false discovery rate \label{tdr}
-
-  - Suppose that, based on these data and this model, we want to claim that there is a mean OR processing cost in English. 
-  - In order to make a discovery claim, we need to understand the **true discovery rate** of this effect. 
- - In the frequentist world, this would be the *statistical power*, the probability of detecting an effect if there is in fact one.
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-
-First, we write a function to generate fake data.
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-Load file: gen_fake_lnorm.R
-
-```{r echo=FALSE}
-library(MASS)
-gen_fake_lnorm <- function(nitem=16,nsubj=42,
-alpha=NULL,beta=NULL,
-                        Sigma_u=NULL,Sigma_w=NULL,sigma_e=NULL){
-  ## prepare data frame for two condition in a latin square design:
-g1<-data.frame(item=1:nitem,
-                 cond=rep(c("objgap","subjgap"),nitem/2))
-g2<-data.frame(item=1:nitem,
-                 cond=rep(c("subjgap","objgap"),nitem/2))
-
-## assemble data frame in long format:
-gp1<-g1[rep(seq_len(nrow(g1)),
-              nsubj/2),]
-gp2<-g2[rep(seq_len(nrow(g2)),
-              nsubj/2),]
-
-fakedat<-rbind(gp1,gp2)
-
-## add subjects:
-fakedat$subj<-rep(1:nsubj,each=nitem)
-fakedat<-fakedat[,c(3,1,2)]  
-fakedat$so<-ifelse(fakedat$cond=="objgap",1,-1)
-## subject random effects:
-  u<-mvrnorm(n=length(unique(fakedat$subj)),
-             mu=c(0,0),Sigma=Sigma_u)
-  ## item random effects
-  w<-mvrnorm(n=length(unique(fakedat$item)),
-             mu=c(0,0),Sigma=Sigma_w)
-
-## generate data row by row:
-  N<-dim(fakedat)[1]
-  rt<-rep(NA,N)
-  for(i in 1:N){
-    rt[i] <- rlnorm(1,alpha +
-                      u[fakedat[i,]$subj,1] +
-                      w[fakedat[i,]$item,1] +
-                      (beta+u[fakedat[i,]$subj,2]+
-                         w[fakedat[i,]$item,2])*fakedat$so[i],
-                   sigma_e)}
-  fakedat$rt<-rt
-  fakedat$subj<-factor(fakedat$subj); fakedat$item<-factor(fakedat$item)
-  fakedat}
-```
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-Extract the parameter means from the Bayesian model, and assemble the variance covariance matrices for the subject and item random effects.
- 
-```{r} 
-sds<-colMeans(sd)
-cors<-colMeans(cor)
-sig<-mean(sigma$sigma)
-Sigma_u<-diag(sds[3:4]^2)
-Sigma_u[1,2]<-Sigma_u[2,1]<-cors[2]*sds[3]*sds[4]
-Sigma_w<-diag(sds[1:2]^2)
-Sigma_w[1,2]<-Sigma_w[2,1]<-cors[1]*sds[1]*sds[2]
-```
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-  - Then, we run 50 simulations, computing the 95% credible interval of the OR processing cost effect.
-  - Because this is a very time-consuming calculation, we are going to use previously computed values.
-
-```{r}
-nsim<-50
-betaquants<-matrix(rep(NA,nsim*2),ncol =2)
-betameans<-matrix(rep(NA,nsim),ncol =2)
-```
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-
-```{r eval=FALSE,echo=TRUE}
-nsim<-100
-tval<-rep(NA,nsim)
-for(i in 1:nsim){
-gg_fake<-gen_fake_lnorm(alpha=mean(alpha),
-                        beta=0,
-               Sigma_u=Sigma_u,Sigma_w=Sigma_w,
-               sigma_e=sig)
-
-#m_gg_fake<-brm(rt~so + (1+so|subj) + (1+so|item),gg_fake,family=lognormal(),
-#    prior=priors,
-#    control = list(adapt_delta = 0.99,max_treedepth=15))
-m_gg_fake<-lmer(log(rt)~so + (1|subj) + (1|item),gg_fake)
-tval[i]<-summary(m_gg_fake)$coefficients[2,3]
-#betapost<-posterior_samples(m_gg_fake)$b_so
-#betaquants[i,]<-quantile(betapost,prob=c(0.025,0.975))
-#betameans[i]<-mean(betapost)
-}
-mean(abs(tval)>2)
-```
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-  - Assume that we are willing to declare an effect just in case 0 is not included in the 95% credible interval of the effect.
-  - The above simulation shows that we would detect the effect in only half of the repeated experiments. 
-
-
-length(which(betaquants[,1]>0))/50
-[1] 0.5
-
-
-Thus, the true discovery rate is quite low. One would want the true discovery rate to be at least 80%. 
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## To make discovery claims, calibrate the true and false discovery rate 
-
-
-  - We can also investigate the false discovery rate---the proportion of times we would declare that we found an effect, when there is none. 
-  - In frequentist statistics, this is called Type I error. The only change needed in the above simulation is to set $\beta$ to 0, to reflect the assumption that there is no effect.
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## Posterior predictive checks
-
-```{r fig.height=3,fig.cap="\\label{fig:ggpostpred}Posterior predictive check for the Grodner and Gibson data."}
-pp_check(m_gg, nsamples = 100)+
-  theme(text = element_text(size=16),
-        legend.text=element_text(size=16))
-```
 
 # Example 2: Question-response accuracies (Logistic regression)
 
@@ -945,7 +801,7 @@ We can now straightforwardly plot the posterior distribution of the difference b
 # Example 2: Question-response accuracies (Logistic regression)
 ## Convert posteriors back to probability space
 
-```{r fig.cap="\\label{fig:ggprob}The difference in question-response accuracies between object and subject relatives."}
+```{r message=FALSE,warning=FALSE,fig.cap="\\label{fig:ggprob}The difference in question-response accuracies between object and subject relatives."}
 postq<-posterior_samples(m_gg_q2)
 alpha<-postq$b_Intercept
 beta<-postq$b_so
