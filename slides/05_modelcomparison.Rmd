@@ -1,5 +1,5 @@
 ---
-title: "05 Model comparison and hypothesis testing"
+title: "05 Model comparison and hypothesis testing uding Bayes factors"
 author: "Shravan Vasishth"
 date: '```r format(Sys.Date(), "%B %d, %Y")```'
 output:
@@ -184,13 +184,13 @@ P(D\mid M_2) = \int P(D\mid \theta, M_2)P(\theta\mid M_2)\, d\theta
 Let's solve this integral analytically. We need to know only one small detail from integral calculus:
 
 \begin{equation}
-\int_a^b x^{9}\, dx = [\frac{x^{10}}{10}]_a^b
+\int_a^b x^{9}\, dx = \left[\frac{x^{10}}{10}\right]_a^b
 \end{equation}
 
 Similarly: 
 
 \begin{equation}
-\int_a^b x^{10}\, dx = [\frac{x^{11}}{11}]_a^b
+\int_a^b x^{10}\, dx = \left[\frac{x^{11}}{11}\right]_a^b
 \end{equation}
 
 Having reminded ourselves of how to solve this simple integral, we proceed as follows.
@@ -254,10 +254,14 @@ We could conclude that we have some evidence against the guessing model M1 in th
   - $BF_{12}=3-10$: Substantial
   - $BF_{12}=2-3$: Not worth more than a bare mention
 
+Do not interpret these as absolute divisions. 
+
 # Introduction
 ## Prior sensitivity
 
 The Bayes factor is sensitive to the choice of prior. It is therefore important to do a sensitivity analysis with different priors. 
+
+Read the article @SchadEtAlBF.
 
 # Introduction
 ## Prior sensitivity
@@ -295,7 +299,7 @@ Now, model M2 is decisively more likely compared to model M1:
 
 This toy example illustrates the effect of prior specification on the Bayes factor. It is therefore very important to display the Bayes factor under both uninformative and informative priors for the parameter that we are interested in.
 
-**One should never use a single `default' prior and report a single Bayes factor**. 
+**One should never use a single `default' prior or report a single Bayes factor**. Example: @NicenboimPreactivation2019. 
 
 # Introduction
 ## The Bayes factor is the ratio of posterior to prior odds
@@ -317,518 +321,92 @@ In the context of our problem:
 
 So, when the prior odds for $M_1$ vs $M_2$ are 1 (i.e., when both models are a priori equi-probable), then we are just interested in computing the posterior odds for the two models.
 
-# The Savage-Dickey method
+# Bayes factors with brms
 
-This method consists of computing the Bayes factor by dividing the height of the posterior for the parameter of interest, $\theta$, by the height of the prior for $\theta$ at the specific point corresponding to some null hypothesis value $\theta=\theta_0$. Because we call the baseline model the null model, we label it $M_0$.
+`brms` has a function for computing Bayes factors:
 
-# The Savage-Dickey method
+- bayes_factor(m0,m1)
 
-
-The Savage-Dickey method is based on a theorem  whose proof appears in several published works [@verdinelli1995computing].
-
-
-# Savage-Dickey Density ratio
-
-Suppose that $M_1$ is a model with parameters $\theta=(\phi,\omega)$, and $M_0$ is a model that is a restricted version of $M_1$ with  $\omega=\omega_0$ and free parameter $\phi$. Suppose that the priors in the two models satisfy 
-
-\begin{equation}
-f(\phi\mid M_0) = f(\phi\mid \omega=\omega_0,M_1)
-\end{equation}
-
-[The above holds if $\phi$ and $\omega$ are independent under $M_1$, that is, if $f(\phi,\omega\mid M_1)=f(\phi\mid M_1)f(\omega\mid M_1)$.]
-
-# Savage-Dickey Density ratio
-
-
-Then, Bayes factor of $M_0$ can be written as
-
-\begin{equation}
-BF_{01} = \frac{P(D|H_0)}{P(D|H_1)} =  \frac{f(\omega=\omega_0\mid D,M_1)}{f(\omega=\omega_0\mid M_1)}
-\end{equation}
-
-
-# Savage-Dickey Density ratio
-## Computing Bayes Factors using the Savage-Dickey method
-
-  - This example is taken from @WagenmakersLee2013book.
-Suppose we have within-subjects data for two conditions. 
-  - The data represent increase in recall performance in a memory task from the same subject, once in winter and once in summer. 
-  - Suppose one theory says that increase in recall performance is higher in summer, but  an alternative theory claims that there is no difference between the two seasons.  
-  - We will test the null vs alternative hypotheses using Bayes factors.
-
-# Savage-Dickey Density ratio
-## Computing Bayes Factors using the Savage-Dickey method
-
-
-```{r echo=TRUE}
-# Read data:
-Winter <- c(-0.05,0.41,0.17,-0.13,0.00,-0.05,0.00,0.17,0.29,0.04,0.21,0.08,0.37,
-            0.17,0.08,-0.04,-0.04,0.04,-0.13,-0.12,0.04,0.21,0.17,0.17,0.17,
-            0.33,0.04,0.04,0.04,0.00,0.21,0.13,0.25,-0.05,0.29,0.42,-0.05,0.12,
-            0.04,0.25,0.12)
-
-Summer <- c(0.00,0.38,-0.12,0.12,0.25,0.12,0.13,0.37,0.00,0.50,0.00,0.00,-0.13,
-            -0.37,-0.25,-0.12,0.50,0.25,0.13,0.25,0.25,0.38,0.25,0.12,0.00,0.00,
-            0.00,0.00,0.25,0.13,-0.25,-0.38,-0.13,-0.25,0.00,0.00,-0.12,0.25,
-            0.00,0.50,0.00)
-```
-
-# Savage-Dickey Density ratio
-## Computing Bayes Factors using the Savage-Dickey method
-
-Let's say we want to compare the evidence for two hypotheses: the difference between the two conditions (Winter and Summer) is 
-
-$H_0: \delta=0$ and $H_0: \delta\neq 0$.
-
-# Savage-Dickey Density ratio
-## Computing Bayes Factors using the Savage-Dickey method
-
-Normally, we would do a paired t-test. We get a non-significant result:
-
-```{r}
-## not significant:
-t.test(Winter,Summer,paired=TRUE)
-```
-
-# Savage-Dickey Density ratio
-## Computing Bayes Factors using the Savage-Dickey method
-
-Equivalently, one can do a one sample test after taking the pairwise differences in scores:
-
-```{r}
-d <- Winter - Summer  
-
-nsubj<-length(Winter)
-
-                    
-t.test(d)
-```
-
-# Savage-Dickey Density ratio
-## Computing Bayes Factors using the Savage-Dickey method
-
-We will now compute the Bayes factor, using the Savage-Dickey method. This will allow us to test the null against the alternative hypothesis. 
-
-# Savage-Dickey Density ratio: Example 1
-
-Prepare data:
-```{r echo=TRUE}
-#standardize the paired difference of scores
-d <- d / sd(d)      
-#number of subjects
-ndata <- length(d)  
-# to be passed on to Stan
-data <- list(x=d, ndata=ndata)
-```
-
-# Savage-Dickey Density ratio: Example 1
-
-We will now compute, using Stan, the Bayes Factor for the two hypotheses $H_0: \delta=0$ and $H_1: \delta \neq 0$. 
-
-The model is:
-
-  - $\delta \sim Cauchy(0,1)$
-  - $\sigma \sim Cauchy(0,1)_{I(0,\infty)}$
-  - $\mu \leftarrow \delta \sigma$
-  - $x_i \sim Normal(\mu,\sigma^2)$
-
-# Savage-Dickey Density ratio: Example 1 
-
-(see accompanying R code with these slides)
-
-\tiny
-
-```{r echo=TRUE}
-model_example1 <- "
-data { 
-  int<lower=0> ndata;
-  vector[ndata] x;
-}
-parameters {
-  real<lower=0> sigma;
-  real delta;
-} 
-transformed parameters {
-  real mu;
-  mu = delta * sigma;
-}
-model {
-  sigma ~ cauchy(0, 1);
-  delta ~ cauchy(0, 1);
-  x ~ normal(mu, sigma);
-}"
-```
-
-# Savage-Dickey Density ratio: Example 1
-
-```{r echo=TRUE,message=FALSE,results="hide",cache=TRUE}
-# Parameters to be monitored
-parameters <- c("delta")
-
-samples <- stan(model_code=model_example1,   
-                data=data, 
-                iter=20000, 
-                chains=4,
-                control=list(adapt_delta=0.99,
-                                      max_treedepth=15))
-
-# Collect posterior samples across all chains:
-delta.posterior <- extract(samples,pars=parameters)$delta 
-```
-
-# Savage-Dickey Density ratio: Example 1
-
-```{r echo=TRUE,fig.height=3}
-hist(delta.posterior,freq=FALSE,xlim=c(-3,3))
-x<-seq(-3,3,by=0.01)
-lines(x,dcauchy(x))
-```
-
-# Savage-Dickey Density ratio: Example 1
-
-```{r echo=TRUE}
-#BFs based on logspline fit
-library(polspline) 
-fit.posterior <- logspline(delta.posterior)
-
-# 95% confidence interval:
-x0 <- qlogspline(0.025,fit.posterior)
-x1 <- qlogspline(0.975,fit.posterior)
-
-# this gives the pdf at point delta = 0
-posterior <- dlogspline(0, fit.posterior) 
-# height of order-restricted prior at delta = 0
-prior     <- dcauchy(0)          
-(BF01      <- posterior/prior)
-```
-
-# Savage-Dickey Density ratio: Example 1
-
-
-The odds of  $H_0$  being true compared to $H_1$ are $`r round(BF01,digits=0)`:1$.
-
-```{r echo=FALSE,fig.height=3,fig.cap="\\label{fig:bfplotsavagedickey}Shown are the prior and posterior densities on delta. The null hypothesis was that delta is 0, and we see that delta=0 has a value 6 times larger under the posterior compared to the prior. **This means that the evidence for the null hypothesis that delta=0 is 6 times more than the alternative**."}
-#============ Plot Prior and Posterior  ===========================
-par(cex.main = 1.5, mar = c(5, 6, 4, 5) + 0.1, mgp = c(3.5, 1, 0), cex.lab = 1.5,
-    font.lab = 2, cex.axis = 1.3, bty = "n", las=1)
-xlow  <- -3
-xhigh <- 3
-yhigh <- 4
-Nbreaks <- 80
-y       <- hist(delta.posterior, Nbreaks, plot=F)
-plot(c(y$breaks, max(y$breaks)), c(0,y$density,0), type="S", lwd=2, lty=2,
-     xlim=c(xlow,xhigh), ylim=c(0,yhigh), xlab=" ", ylab="Density", axes=F) 
-axis(1, at = c(-4,-3,-2,-1,0,1,2,3,4), lab=c("-4","-3","-2","-1","0",
-                                             "1", "2", "3", "4"))
-axis(2)
-mtext(expression(delta), side=1, line = 2.8, cex=2)
-#now bring in log spline density estimation:
-par(new=T)
-plot(fit.posterior, ylim=c(0,yhigh), xlim=c(xlow,xhigh), lty=1, lwd=1, axes=F)
-points(0, dlogspline(0, fit.posterior),pch=19, cex=2)
-# plot the prior:
-par(new=T)
-plot(function( x ) dcauchy( x, 0, 1 ), xlow, xhigh, ylim=c(0,yhigh),
-     xlim=c(xlow,xhigh), lwd=2, lty=1, ylab=" ", xlab = " ", axes=F) 
-axis(1, at = c(-4,-3,-2,-1,0,1,2,3,4), lab=c("-4","-3","-2","-1","0",
-                                             "1", "2", "3", "4"))
-axis(2)
-points(0, dcauchy(0), pch=19, cex=2)
-```
-
-# Savage-Dickey Density ratio: Example 2
-
-We will now compute, using Stan, the Bayes Factor for the two hypotheses $H_0: \delta=0$ and $H_1: \delta \sim Cauchy(0,1)_{I(-\infty,0)}$. 
-
-The Bayesian model is:
-
-  - $\delta \sim Cauchy(0,1)_{I(-\infty,0)}$
-  - $\sigma \sim Cauchy(0,1)_{I(0,\infty)}$
-  - $\mu \leftarrow \delta\sigma$
-  - $x_i \sim Normal(\mu,\sigma)$
-
-```{r echo=TRUE}
-## You could define initial values, but we
-## will let Stan do this:
-#myinits <- list(
-#  list(delta=-abs(rnorm(1,0,1)), deltaprior=-abs(rnorm(1,0,1)), sigmatmp=.1),
-#  list(delta=-abs(rnorm(1,0,1)), deltaprior=-abs(rnorm(1,0,1)), sigmatmp=.2),
-#  list(delta=-abs(rnorm(1,0,1)), deltaprior=-abs(rnorm(1,0,1)), sigmatmp=.3))
-```
-
-# Savage-Dickey Density ratio: Example 2
-
-\tiny
-```{r echo=TRUE}
-# Parameters to be monitored
-parameters <- c("delta")
-
-model_example2 <- "
-// One-Sample Comparison of Means
-data { 
-  int<lower=0> ndata;
-  vector[ndata] x;
-}
-parameters {
-  real<lower=0> sigma;
-  real<upper=0> delta;
-} 
-transformed parameters {
-  real mu;
-  mu = delta * sigma;
-}
-model {
-  // delta and sigma Come From (Half) Cauchy Distributions
-  sigma ~ cauchy(0, 1);
-  delta ~ cauchy(0, 1);
-  // Data
-  x ~ normal(mu, sigma);
-}"
-```
-
-# Savage-Dickey Density ratio: Example 2
-
-
-```{r echo=TRUE,message=FALSE,results="hide",cache=TRUE}
-## samples from model:
-samples <- stan(model_code=model_example2,   
-                data=data, 
-                #init=myinits,
-                pars=parameters,
-                iter=30000, 
-                chains=4,
-                control = list(adapt_delta = 0.99,
-                               max_treedepth=15))
-
-# Collect posterior samples across all chains:
-delta.posterior <- extract(samples)$delta
-```
-
-# Savage-Dickey Density ratio: Example 2
-
-
-```{r fig,height=3}
-hist(delta.posterior,freq=FALSE,
-     xlim=c(-3,0),main="Posterior distribution \n and prior (line)")
-x<-seq(-3,0,by=0.001)
-lines(x,dcauchy(x))
-```
-
-# Savage-Dickey Density ratio: Example 2
-
-Now we compute the Bayes Factor, comparing the two hypotheses.
-
-```{r echo=TRUE}
-fit.posterior <- logspline(delta.posterior,ubound=0) 
-# 95% confidence interval:
-x0 <- qlogspline(0.025,fit.posterior)
-x1 <- qlogspline(0.975,fit.posterior)
-
-# this gives the pdf at point delta = 0
-posterior <- dlogspline(0, fit.posterior) 
-# height of order--restricted prior at delta = 0
-prior     <- 2*dcauchy(0)       
-(BF01      <- posterior/prior)
-```
-
-# Savage-Dickey Density ratio: Example 2
-
-
-According to this analysis, the null hypothesis $H_0: \delta=0$ being true is 
-$`r round(BF01,digits=0)`$ 
-times more likely than $H_1: \delta \sim Cauchy(0,1)_{I(-\infty,0)}$.
-
-```{r fig.height=3,fig.cap="\\label{fig:posterior}The prior and posterior densities."}
-#============ Plot Prior and Posterior  ===========================
-par(cex.main = 1.5, 
-    mar = c(5, 6, 4, 5) + 0.1, 
-    mgp = c(3.5, 1, 0), cex.lab = 1.5,
-    font.lab = 2, cex.axis = 1.3, bty = "n", las=1)
-xlow  <- -3
-xhigh <- 0
-yhigh <- 12
-Nbreaks <- 80
-y       <- hist(delta.posterior, Nbreaks, plot=F)
-plot(c(y$breaks, max(y$breaks)), c(0,y$density,0), type="S", lwd=2, lty=2,
-     xlim=c(xlow,xhigh), ylim=c(0,yhigh), xlab=" ", ylab="Density", axes=F) 
-axis(1, at = c(-3,-2,-1,0), lab=c("-3","-2","-1","0"))
-axis(2)
-mtext(expression(delta), side=1, line = 2.8, cex=2)
-#now bring in log spline density estimation:
-par(new=T)
-plot(fit.posterior, ylim=c(0,yhigh), 
-     xlim=c(xlow,xhigh), lty=1, lwd=1, axes=F)
-points(0, dlogspline(0, fit.posterior),pch=19, cex=2)
-# plot the prior:
-par(new=T)
-plot ( function( x ) 2*dcauchy( x, 0, 1 ), xlow, xhigh, ylim=c(0,yhigh),
-       xlim=c(xlow,xhigh), lwd=2, lty=1, ylab=" ", xlab = " ", axes=F) 
-axis(1, at = c(-3,-2,-1,0), lab=c("-3","-2","-1","0"))
-axis(2)
-points(0, 2*dcauchy(0), pch=19, cex=2)
-```
-
-
-# Two methods for computing Bayes factors with brms
-
-brms provides two approaches:
-
-- hypothesis function
-- bayes_factor
-
-# Two methods for computing Bayes factors with brms
+# Bayes factors with brms
 ## Set up data
 
-First, set up data as a data-frame:
+```{r echo=TRUE}
+library(bcogsci)
+data("df_gg05_rc")
+df_gg05_rc$so<-ifelse(df_gg05_rc$condition=="objgap",1,-1)
+```
+
+# Bayes factors with brms
+## Define priors for full model
 
 ```{r echo=TRUE}
-y<-c(Winter,Summer)
-#length(Winter)
-n<-length(Summer)
-
-cond<-factor(c(rep("winter",n),
-        rep("summer",n)))
-subject<-rep(rep(1:n),2)
-dat<-data.frame(y,cond,subject)
+priors <- c(set_prior("normal(6, 0.6)", class = "Intercept"),
+             set_prior("normal(0.12, 0.04)", class = "b", coef = "so"),
+             set_prior("normal(0, 0.1)", class = "sd"),
+             set_prior("normal(0, 0.5)", class = "sigma"),
+             set_prior("lkj(2)", class = "cor"))
 ```
 
-# Two methods for computing Bayes factors with brms
-## Examine data frame
+# Bayes factors with brms
 
-```{r}
-head(dat)
+```{r echo=TRUE,cache=TRUE,results="hide",message=FALSE,warning=FALSE}
+brm1 <- brm(RT ~ so + 
+              (1+so|subj) + (1+so|item), df_gg05_rc, 
+                    family=lognormal(), prior=priors, 
+                    warmup=2000,
+                    iter=10000,
+                    cores=4,
+                    save_pars = save_pars(all = TRUE),
+                    control=list(adapt_delta=0.99, max_treedepth=15))
 ```
 
-# Two methods for computing Bayes factors with brms
-## Set priors:
+# Bayes factors with brms
 
 ```{r echo=TRUE}
-## null hypothesis model's prior:
-priors0 <- c(set_prior("cauchy(0, 1)", class = "Intercept"),
-                      set_prior("cauchy(0, 1)", 
-                                class = "sd"),
-                      set_prior("cauchy(0, 1)", 
-                                class = "sigma"))
-## alt hypothesis model's prior:
-priors <- c(set_prior("cauchy(0, 1)", class = "Intercept"),
-                      set_prior("cauchy(0, 1)", 
-                                class = "b"),
-                      set_prior("cauchy(0, 1)", 
-                                class = "sd"),
-                      set_prior("cauchy(0, 1)", 
-                                class = "sigma"))
+priorsNULL <- c(set_prior("normal(6, 0.6)", class = "Intercept"),
+             #set_prior("normal(0, 0.05)", class = "b", coef = "so"),
+             set_prior("normal(0, 0.1)", class = "sd"),
+             set_prior("normal(0, 0.5)", class = "sigma"),
+             set_prior("lkj(2)", class = "cor"))
 ```
 
-# Two methods for computing Bayes factors with brms
-## Using Savage-Dickey method (the hypothesis function in brms)
+# Bayes factors with brms
 
-```{r echo=TRUE,warning=FALSE,message=FALSE,include=FALSE,results="asis",cache=TRUE}
-m_full <- brm(y ~ cond + (1|subject), 
-              data = dat, 
-              prior = priors, 
-              sample_prior = TRUE, 
-              iter = 10000,
-        control=list(adapt_delta=0.99,
-                     max_treedepth=15))
-
-#summary(m_full)
+```{r echo=TRUE,results="hide",cache=TRUE,message=FALSE,warning=FALSE}
+brm0 <- brm(RT ~ 1 + 
+              (1+so|subj) + (1+so|item), df_gg05_rc, 
+                    family=lognormal(), prior=priorsNULL, 
+                    warmup=2000,
+                    iter=10000,
+                    cores=4,
+                    save_pars = save_pars(all = TRUE),
+                    control=list(adapt_delta=0.99, max_treedepth=15))
 ```
 
-# Two methods for computing Bayes factors with brms
-## Using Savage-Dickey method (the hypothesis function in brms)
+# Bayes factors with brms
 
-```{r echo=TRUE}
-# H0: No effect of cond
-BF_brms_m <- brms::hypothesis(m_full, 
-                        "condwinter = 0") 
-## Evidence for NULL model vs FULL model:
-BF_brms_m$hypothesis$Evid.Ratio  
+```{r cache=TRUE}
+bayes_factor(brm0,brm1)
 ```
 
-# Two methods for computing Bayes factors with brms
-## Sensitivity analysis (use standard normal priors instead of Cauchy)
+# Bayes factors with brms
 
-```{r sensitivityanalysis,echo=TRUE,eval=FALSE,cache=TRUE}
-## Normal prior for alternative (for sensitivity analysis)
-normalpriors <- c(set_prior("normal(0, 1)", class = "Intercept"),
-                      set_prior("normal(0, 1)", 
-                                class = "b"),
-                      set_prior("normal(0, 1)", 
-                                class = "sd"),
-                      set_prior("normal(0, 1)", 
-                                class = "sigma"))
-
-m_full <- brm(y ~ cond + (1|subject), 
-              data = dat, 
-              prior = normalpriors, 
-              sample_prior = TRUE, 
-              iter = 10000,
-        control=list(adapt_delta=0.99))
-
-#summary(m_full)
+```{r cache=TRUE}
+bayes_factor(brm1,brm0)
 ```
 
-# Two methods for computing Bayes factors with brms
 
-```{r echo=TRUE}
-# H0: No effect of cond
-BF_brms_m <- brms::hypothesis(m_full, 
-                        "condwinter = 0")  
-## Evidence for NULL model vs FULL model:
-BF_brms_m$hypothesis$Evid.Ratio  
-```
+# Bayes factors with brms
 
-# Two methods for computing Bayes factors with brms
-## Using the bayes_factor function in brms
-
-```{r echo=TRUE,message=FALSE,warning=FALSE,results="asis",cache=TRUE}
-## null model
-m0<-brm(y~1+(1|subject),
-        dat,prior=priors0,
-        warmup=1000,
-        iter=10000,
-        save_all_pars = TRUE,
-        control=list(adapt_delta=0.99))
-
-## alt model
-m1<-brm(y~cond+(1|subject),
-        dat,prior=priors,
-        warmup=1000,
-        save_all_pars = TRUE,
-        iter=10000,
-        control=list(adapt_delta=0.99))
-```
-
-# Two methods for computing Bayes factors with brms
-## Using the bayes_factor function in brms
-
-
-```{r echo=TRUE,message=FALSE,warning=FALSE,results="asis"}
-bayes_factor(m0,m1)$bf
-```
-
-# Two methods for computing Bayes factors with brms
-## Using the bayes_factor function in brms
-
-
-Notice that if you flip the order of the models in the function, the evidence is for the first model:
-
-```{r echo=TRUE,message=FALSE,warning=FALSE,results="asis"}
-bayes_factor(m1,m0)$bf
-```
+Run the command several times to check stability.
 
 
 # Class Exercise 1
 
-Refit examples 1 and 2 with a different prior for $\sigma$ than the ones used. Does the Bayes Factor change when the priors are changed?
-In the two examples, how does the Bayes factor change when the prior for $\delta$ is changed to a Normal(0,0.5)?
+Refit the above models with a different prior for $\sigma$ than the one used. Does the Bayes Factor change when the priors are changed?
 
 # Class Exercise 2
 
-Estimate the Bayes factor for the hypotheses:
-$H_0: \delta=0$, and 
-$H_1: \delta \sim 
-Cauchy(0,1)_{I(0,\infty)}$.
-
+In the above example, how does the Bayes factor change when the prior for the slope for $so$ is changed to a Normal(0,0.05) to Normal(0,1)?
 
 # References
