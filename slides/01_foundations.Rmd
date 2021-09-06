@@ -209,9 +209,9 @@ The mean is $np$ and the variance $np(1-p)$.
 
 
 ```###pmf:
-dbinom(x, size, prob, log = FALSE)
+dbinom(k, size, prob, log = FALSE)
 ### cdf:
-pbinom(q, size, prob, lower.tail = TRUE, log.p = FALSE)
+pbinom(k, size, prob, lower.tail = TRUE, log.p = FALSE)
 ### quantiles:
 qbinom(p, size, prob, lower.tail = TRUE, log.p = FALSE)
 ### pseudo-random generation of samples:
