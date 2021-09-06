@@ -85,7 +85,7 @@ Good example: number of coin tosses till H
 
 # Random variable theory 
 
-Every discrete (continuous) random variable X has associated with it a \textbf{probability mass (distribution)  function (pmf, pdf)}. I.e., PMF is used for discrete distributions and PDF for continuous. (I will sometimes use lower case for pdf and sometimes upper case. Some books use pdf for both discrete and continuous distributions.)
+Every discrete (continuous) random variable X has associated with it a \textbf{probability mass (density)  function (pmf, pdf)}. I.e., PMF is used for discrete distributions and PDF for continuous. (I will sometimes use lower case for pdf and sometimes upper case. Some books use pdf for both discrete and continuous distributions.)
 
 \begin{equation}
 p_X : S_X \rightarrow [0, 1] 
@@ -199,10 +199,10 @@ univariate_continuous_addin()
 
 # Binomial distribution
 
-If we have $x$ successes in $n$ trials, given a success probability $p$ for each trial. If $x \sim Bin(n,p)$.
+If we have $k$ successes in $n$ trials, given a success probability $p$ for each trial. If $k \sim Bin(n,p)$.
 
 \begin{equation}
-P(x\mid n, p) = {n \choose k} p^k (1-p)^{n-k} 
+P(k\mid n, p) = {n \choose k} p^k (1-p)^{n-k} 
 \end{equation}
 
 The mean is $np$ and the variance $np(1-p)$.
