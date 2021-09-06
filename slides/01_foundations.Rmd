@@ -108,7 +108,7 @@ The expression
 \end{equation}
 
 \noindent
-means that the random variable $X$ has pdf/pmf $g(\cdot)$.
+means that the random variable $X$ has pdf/pmf $f(\cdot)$.
 For example, if we say that $X\sim N(\mu,\sigma^2)$, we are assuming that the pdf is
 
 \begin{equation}
