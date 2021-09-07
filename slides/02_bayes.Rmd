@@ -51,7 +51,7 @@ Here, $f(\cdot)$ is a probability density, not the probability of a single event
 $f(y)$ is called a ``normalizing constant'', which makes the left-hand side a probability distribution. 
 
 \begin{equation}
-f(y)= \int f(x,\theta)\, d\theta = \int f(y\mid \theta) f(\theta)\, d\theta
+f(y)= \int f(y,\theta)\, d\theta = \int f(y\mid \theta) f(\theta)\, d\theta
 \end{equation}
 
 # Introduction to Bayesian data analysis
