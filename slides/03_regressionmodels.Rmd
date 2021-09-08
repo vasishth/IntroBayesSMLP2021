@@ -537,7 +537,7 @@ round(quantile(mu_post,prob=c(0.135,0.865)))
 ```{r echo=TRUE}
 priors <- c(set_prior("uniform(0, 5000)", 
                       class = "Intercept"),
-            set_prior("normal(0, 500)", 
+            set_prior("uniform(0, 500)", 
                       class = "sigma"))
 ```
 
@@ -713,7 +713,7 @@ Let's say we know that our model is working as expected, since we already used f
 To do posterior predictive checks for our last example, using `brms`, we need to do:
 
 ```{r echo=TRUE,fig.height=3,fig.cap="\\label{fig:m2ppc}Posterior predictive check of model m2.",warning=FALSE,message=FALSE}
-pp_check(m2, nsamples = 100)+
+pp_check(m2,nsamples=100)+
   theme(text = element_text(size=16),
         legend.text=element_text(size=16))
 ```
@@ -757,7 +757,7 @@ plot(normalplot)
 If we assume that RTs are log-normally distributed, we'll need to change our model:
 
 \begin{equation}
-RT_i \sim LogNormal(\alpha + presses_i \cdot \beta,\sigma)
+RT_n \sim LogNormal(\alpha + c_trial_n \cdot \beta,\sigma)
 \end{equation}
 
 where $n =1 \ldots N$
