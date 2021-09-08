@@ -1,7 +1,7 @@
 ---
-title: "03 Linear modeling"
-author: "Shravan Vasishth and Bruno Nicenboim"
-date: "SMLP 2019"
+title: "03 Regression modeling"
+author: "Shravan Vasishth"
+date: "SMLP 2021"
 output:
   beamer_presentation:
     theme: "Boadilla"
@@ -28,9 +28,9 @@ library(tidyverse)
 
 # Linear modeling 
 
-Suppose $y$ is a vector of continuous responses; assume for now that it is coming from a normal distribution:
+Suppose $y$ is a vector of continuous responses; assume for now that the $y$ are independent and identically distributed:
 
-$y \sim Normal(\mu,\sigma)$
+$y \stackrel{iid}{\sim} Normal(\mu,\sigma)$
 
 This is the simple linear model:
 
@@ -60,13 +60,15 @@ As a first example, we will fit a simple linear model to some reaction time data
 
 The data frame df_spacebar contains data of a subject pressing the space bar without reading in a self-paced reading experiment.
 
-### Load the data
+### Install the library
 
 Install the library bcogsci. See:
 
 https://github.com/bnicenboim/bcogsci
 
-```{r, reading_noreading}
+### Load the data
+
+```{r, echo=TRUE,reading_noreading}
 library(bcogsci)
 data("df_spacebar")
 ```
@@ -419,7 +421,7 @@ m1brms<-brm(rt~1,df_spacebar,prior = priors,
 
 A graphical summary of posterior distributions of model m1 is shown in Figure \ref{fig:m1stanplot}:
 
-```{r echo=FALSE,fig.height=4,message=FALSE,fig.cap="\\label{fig:m1stanplot}Posterior distributions of the parameters in model m1."}
+```{r echo=FALSE,warning=FALSE,message=FALSE,fig.height=4,message=FALSE,fig.cap="\\label{fig:m1stanplot}Posterior distributions of the parameters in model m1."}
 stanplot(m1brms,type="hist")
 ```
 
@@ -427,7 +429,7 @@ stanplot(m1brms,type="hist")
 
 The trace plots in Figure \ref{fig:m1traceplot} show how well the four chains are mixing:
 
-```{r echo=FALSE,fig.height=4,message=FALSE,fig.cap="\\label{fig:m1traceplot}Trace plots in model m1."}
+```{r echo=FALSE,warning=FALSE,message=FALSE,fig.height=4,message=FALSE,fig.cap="\\label{fig:m1traceplot}Trace plots in model m1."}
 stanplot(m1brms,type="trace")
 ```
 
@@ -486,9 +488,9 @@ m1brms<-brm(rt~1,df_spacebar,prior = priors,
 # Summarizing the posterior distribution: posterior probabilities and the credible interval
 
 
-We now compute the posterior probability  $Prob(\mu>170)$:
+Now compute the posterior probability  $Prob(\mu>170)$:
 
-```{r echo=TRUE}
+```{r echo=TRUE,warning=FALSE,message=FALSE}
 mu_post<-posterior_samples(m1brms,
                            variable=c("b_Intercept"))$b_Int
 mean(mu_post>170)
@@ -608,12 +610,12 @@ df_spacebar <- df_spacebar %>%
 Our model changes, because we have a new parameter. 
 
 \begin{equation}
-rt_n \sim \mathit{LogNormal}(\alpha + c\_trial_n \cdot \beta,\sigma)
+rt_n \sim \mathit{Normal}(\alpha + c\_trial_n \cdot \beta,\sigma)
 \end{equation}
 
 where $n =1 \ldots N$.
 
-We are going to use the following priors:
+We could use the following priors.
 
 \begin{equation}
 \begin{aligned}
@@ -638,7 +640,7 @@ Do the priors make sense?
 
 We'll write this in brms as follows.
 
-```{r results="hide",echo=TRUE}
+```{r results="hide",echo=TRUE,warning=FALSE,message=FALSE}
 priors <- c(set_prior("normal(0, 2000)", 
                       class = "Intercept"),
             set_prior("normal(0, 500)", 
@@ -651,7 +653,7 @@ priors <- c(set_prior("normal(0, 2000)",
 # Example 2: Investigating adaptation effects \label{sec:moreinter}
 ## Probability model
 
-```{r cache=TRUE,echo=TRUE}
+```{r cache=TRUE,echo=TRUE,warning=FALSE,message=FALSE}
 m2<-brm(rt~1+c_trial,df_spacebar,
         prior = priors,
        iter = 2000, chains = 4,family = gaussian(), 
@@ -662,7 +664,7 @@ m2<-brm(rt~1+c_trial,df_spacebar,
 ## Posteriors
 
 
-```{r fig.height=3,message=FALSE}
+```{r fig.height=3,message=FALSE,warning=FALSE}
 library(bayesplot)
 #bayesplot::theme_default()
 stanplot(m2,type="hist")
@@ -672,13 +674,13 @@ stanplot(m2,type="hist")
 # Example 2: Investigating adaptation effects \label{sec:moreinter}
 ## Summarizing the posterior and inference
 
-We'll need to examine what happens with $\beta$. The summary gives us the relevant information:
+We'll need to examine what happens with $\beta$. The summary gives us the relevant information.
 
 # Example 2: Investigating adaptation effects \label{sec:moreinter}
 ## Summarizing the posterior and inference
 
 
-```{r echo=TRUE}
+```{r echo=TRUE,warning=FALSE,message=FALSE}
 m2_post_samp_b <- posterior_samples(m2, "^b")
 str(m2_post_samp_b)
 beta_samples <- m2_post_samp_b$b_c_trial 
@@ -694,7 +696,7 @@ beta_high<-quantiles_beta[2]
 
 We'll need to examine what happens with $\beta$. The summary gives us the relevant information:
 
-```{r echo=TRUE}
+```{r echo=TRUE,warning=FALSE,message=FALSE}
 m2_post_samp_b2 <- posterior_summary(m2, "^b")
 round(m2_post_samp_b2,2)
 ```
@@ -710,7 +712,7 @@ Let's say we know that our model is working as expected, since we already used f
 
 To do posterior predictive checks for our last example, using `brms`, we need to do:
 
-```{r fig.height=3,fig.cap="\\label{fig:m2ppc}Posterior predictive check of model m2."}
+```{r echo=TRUE,fig.height=3,fig.cap="\\label{fig:m2ppc}Posterior predictive check of model m2.",warning=FALSE,message=FALSE}
 pp_check(m2, nsamples = 100)+
   theme(text = element_text(size=16),
         legend.text=element_text(size=16))
@@ -719,7 +721,7 @@ pp_check(m2, nsamples = 100)+
 # Example 2: Investigating adaptation effects \label{sec:moreinter}
 ## Using the log-normal likelihood
 
-```{r lognormal,echo=FALSE,fig.height=3,fig.height=2,fig.width=3.5, fig.show='hold', message=FALSE, warning=FALSE,fig.cap="\\label{fig:logndemo}The log-normal distribution."}
+```{r echo=TRUE}
 mu <- 6
 sigma <- 0.5
 N <- 100000
@@ -732,6 +734,12 @@ lognormal_plot <- ggplot(data.frame(samples=sl), aes(sl)) + geom_histogram() +
 sn <- exp(rnorm(N, mu, sigma))
 normalplot <- ggplot(data.frame(samples=sn), aes(sn)) + geom_histogram() + 
       ggtitle("Exponentiated samples of\n a normal distribution") + ylim(0,25000) + xlim(0,2000)
+```
+
+# Example 2: Investigating adaptation effects \label{sec:moreinter}
+## Using the log-normal likelihood
+
+```{r lognormal,echo=TRUE,fig.height=3,fig.height=2,fig.width=3.5, fig.show='hold', message=FALSE, warning=FALSE,fig.cap="\\label{fig:logndemo}The log-normal distribution."}
 
 plot(lognormal_plot)
 ```
