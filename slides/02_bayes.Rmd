@@ -207,14 +207,14 @@ We can now visualize each of these triplets of priors, likelihoods and posterior
 
 # Example 1: Binomial Likelihood, Beta prior, Beta posterior
 
-```{r,binomlik,echo=FALSE,fig.height=4,fig.cap="\\label{fig:binomplot}Binomial likelihood function."}
+```{r,binomlik,echo=FALSE, message=FALSE,fig.height=4,fig.cap="\\label{fig:binomplot}Binomial likelihood function."}
 library(ggplot2)
 library(tidyverse)
 ## Likelihood
 k <- 46
 n <- 100
 ## Prior
-a <- 21
+a <- 210
 b <- 21
 binom_lh <- function(theta) {
 dbinom(x=k, size =n, prob = theta)
