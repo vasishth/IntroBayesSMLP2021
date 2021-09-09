@@ -162,6 +162,7 @@ We can then plot the prior predictive densities generated.
 
 # Prior predictive checks
 
+\tiny
 ```{r echo=TRUE}
 library(extraDistr) ## needed for half-normal distribution
 ## number of simulations
