@@ -251,7 +251,7 @@ y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + \beta * so_{n},\si
 
 where there are now three variance components:
 
-- $\sigma$
+- $\sigma \sim Normal(0,\sigma)$
 - $u_{subj[n],1} \sim Normal(0,\sigma_{subj[n],1})$
 - between item variability in mean reading time, $w_{item[n],1} \sim Normal(0,\sigma_{w1})$
 
@@ -312,7 +312,7 @@ This is called the *varying intercepts and slopes* model with *no correlation* b
 y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w_{item[n],2}) * so_{n}, \sigma)
 \end{equation}
 
-where we have variance components: $\sigma$ and 
+where we have variance components: $\sigma \sim Normal(0,\sigma)$ and 
 
 \begin{equation}\label{eq:covmat}
 \Sigma _u
@@ -377,7 +377,7 @@ Define some priors first:
 \item $\alpha \sim Normal(0,10)$
 \item $\beta \sim Normal(0,1)$
 \item Residual standard deviation: $\sigma \sim Normal_{+}(0,1)$
-\item All other standard deviations: $\sigma \sim Normal_{+}(0,1)$
+\item All other standard deviations are also: $Normal_{+}(0,1)$
 \item Correlation matrix: $\rho \sim LKJcorr(2)$. 
 \end{enumerate}
 
@@ -615,15 +615,6 @@ mcmc_areas(subjslope)
 # Example 1: Reading time differences in subject vs object relatives in English
 ## By subject slope adjustments
 
-
-```{r echo=FALSE,warning=FALSE,fig.height=3,fig.cap="\\label{fig:ggsubjsloperidges}Variability in subject slope adjustments in the Grodner and Gibson data."}
-mcmc_areas_ridges(subjslope)
-```
-
-
-# Example 1: Reading time differences in subject vs object relatives in English
-## By subject slope adjustments
-
 ```{r echo=FALSE,warning=FALSE,fig.height=3,fig.cap="\\label{fig:ggpostcorr}Posterior distributions of subject varying intercept and slope correlation parameter in the Grodner and Gibson data."}
 stanplot(m_gg,type="hist",pars="cor_subj__Intercept__so")
 ```
@@ -639,8 +630,8 @@ It is useful to see the effects on the raw ms scale. The log ms scale is difficu
 ```{r}
 exp(mean(alpha)+mean(beta))-exp(mean(alpha)-mean(beta))
 meandiff<- exp(alpha + beta) - exp(alpha - beta)
-mean(meandiff)
-round(quantile(meandiff,prob=c(0.025,0.975)),0)
+(mndiff<-mean(meandiff))
+(diffq<-round(quantile(meandiff,prob=c(0.025,0.975)),0))
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
@@ -679,8 +670,12 @@ subjdiff<-subjdiff[,order(mns)]
 for(i in 1:42){
   hist(subjdiff[,i],xlim=c(min(subjdiff),
                            max(subjdiff)),
-       main=paste("subj",colnames(subjdiff)[i],sep=" "))
-  Sys.sleep(.2)
+       ylim=c(0,0.02),
+       main=paste("subj",colnames(subjdiff)[i],sep=" "),freq=FALSE)
+  abline(v=mndiff)
+  abline(v=diffq[1],lty=2)
+  abline(v=diffq[2],lty=2)
+  Sys.sleep(.5)
 }
 ```
 
