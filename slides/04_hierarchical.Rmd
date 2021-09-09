@@ -312,7 +312,7 @@ This is called the *varying intercepts and slopes* model with *no correlation* b
 y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w_{item[n],2}) * so_{n}, \sigma)
 \end{equation}
 
-where we have variance components: $\sigma \sim Normal(0,\sigma)$ and 
+where we have variance components: $\sigma \sim Normal(0,1)$ and 
 
 \begin{equation}\label{eq:covmat}
 \Sigma _u
@@ -534,15 +534,16 @@ plot(density(corrs[[3]],bw=0.15),ylab="density",xlab=expression(rho),xlim=c(-1,1
 ```{r message=FALSE,warning=FALSE}
 priors <- c(set_prior("normal(0, 10)", 
                       class = "Intercept"),
-                      set_prior("normal(0, 1)", 
+                      set_prior("(0, 1)", 
                                 class = "b", 
-                                coef = "so"),
+                                coef = "b_condition"),
                       set_prior("normal(0, 1)", 
                                 class = "sd"),
                       set_prior("normal(0, 1)", 
                                 class = "sigma"),
                       set_prior("lkj(2)", 
-                                class = "cor"))
+                                class = "cor")
+)
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
@@ -550,9 +551,11 @@ priors <- c(set_prior("normal(0, 10)",
 
 
 ```{r results="hide",cache=TRUE,message=FALSE}
+library(tictoc)
+tic()
 m_gg<-brm(RT~so + (1+so|subj) + (1+so|item),
-          df_gg05_rc,family=lognormal(),
-    prior=priors)
+          df_gg05_rc,family=lognormal())
+toc()
 ```
 
 # Example 1: Reading time differences in subject vs object relatives in English
