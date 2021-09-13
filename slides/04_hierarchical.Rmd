@@ -252,7 +252,7 @@ y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + \beta * so_{n},\si
 where there are now three variance components:
 
 - $\sigma \sim Normal(0,\sigma)$
-- $u_{subj[n],1} \sim Normal(0,\sigma_{subj[n],1})$
+- $u_{subj[n],1} \sim Normal(0,\sigma_{u1})$
 - between item variability in mean reading time, $w_{item[n],1} \sim Normal(0,\sigma_{w1})$
 
 This model is called a *varying intercepts model* with crossed varying intercepts for subjects and for items.
@@ -285,7 +285,7 @@ hist(diff,
 We can incorporate this assumption into the model by adding adjustments to the $\beta$ parameter:
 
 \begin{equation}
-y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w_{item[n],1})* so_{n},\sigma) 
+y_{n} \sim LogNormal(\alpha + u_{subj[n],1} + w_{item[n],1} + (\beta + u_{subj[n],2} + w_{item[n],2})* so_{n},\sigma) 
 \end{equation}
 
 where 
